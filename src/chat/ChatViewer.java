@@ -1,0 +1,298 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package chat;
+
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
+
+/**
+ *
+ * @author Default
+ */
+public class ChatViewer extends javax.swing.JFrame {
+
+    private BufferedReader leitor;
+    private PrintWriter escritor;
+
+    public ChatViewer() {
+        initComponents();
+        editor();
+        IniciarChat();
+        IniciarEscritor();
+        IniciarLeitor();
+    }
+
+    public void editor() {
+        jVisor.setEditable(false);
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+        jMSG.setText("Digite sua mensagem aqui!!!");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        String[] usuarios = new String[]{"elvis", "maria", "joao", "jose", "renata", "marizete", "mateus", "robson"};
+        preencherListaUsuarios(usuarios);
+    }
+
+    private void preencherListaUsuarios(String[] usuarios) {
+        DefaultListModel modelo = new DefaultListModel();
+        jUsuarios.setModel(modelo);
+        for (String usuario : usuarios) {
+            modelo.addElement(usuario);
+        }
+    }
+
+    public void IniciarEscritor() {
+        jVisor.addKeyListener(new KeyListener() { //chamando metodo para fazer events fora do evento
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    //Escrevendo para o servidor
+                    if (jVisor.getText().isEmpty()) {
+                        return;
+                    }
+
+                    Object usuario = jUsuarios.getSelectedValue();
+                    if (usuario != null) {
+                        jVisor.append("Eu: ");
+                        jVisor.append(jMSG.getText());
+                        jVisor.append("\n");
+                        
+                        escritor.println(Comandos.msg + usuario);
+                        escritor.println(jMSG.getText());
+                        jMSG.setText("");
+                        e.consume();
+
+                    } else {
+                        if (jVisor.getText().equalsIgnoreCase(Comandos.sair)) {
+                            System.exit(0);
+                        }
+                        JOptionPane.showInternalMessageDialog(null, "Usuario não selecionado!!!");
+                        return;
+                    }
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+        });
+
+    }
+
+    private DefaultListModel getListaUsuarios() {
+        return (DefaultListModel) jUsuarios.getModel();
+    }
+
+    private void IniciarChat() {
+        try {
+            final Socket cliente = new Socket("127.0.0.1", 9999);
+            leitor = new BufferedReader(new InputStreamReader(cliente.getInputStream()));
+            escritor = new PrintWriter(cliente.getOutputStream(), true);
+
+        } catch (UnknownHostException e) {
+            System.out.println("Endereço IP incorreto!!!");
+            e.printStackTrace();
+        } catch (IOException ex) {
+            System.out.println("Servidor fora do ar!!!");
+            ex.printStackTrace();
+        }
+    }
+
+    private void IniciarLeitor() {
+        //Lendo msg do servidor
+        try {
+            while (true) {
+                String mensagem = leitor.readLine();
+                if (mensagem == null || mensagem.isEmpty()) {
+                    continue;
+                }
+                if (mensagem.equals(Comandos.listaUsuarios)) {
+                    String[] usuarios = leitor.readLine().split(",");
+                    preencherListaUsuarios(usuarios);
+                } else if (mensagem.equals(Comandos.login)) {
+                    String login = JOptionPane.showInputDialog("Qual é o seu login ?");
+                    escritor.println(login);
+                } else if (mensagem.equals(Comandos.login_aceito)) {
+                    preencherLista();
+
+                } else {
+                    jVisor.append(mensagem);
+                    jVisor.append("\n");
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println("Erro na leitura de dados.");
+            ex.printStackTrace();
+        }
+    }
+
+    private void preencherLista() {
+        escritor.println(Comandos.listaUsuarios);
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jVisor = new javax.swing.JTextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jMSG = new javax.swing.JTextArea();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jUsuarios = new javax.swing.JList();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setUndecorated(true);
+        setPreferredSize(new java.awt.Dimension(800, 600));
+
+        jPanel1.setMaximumSize(new java.awt.Dimension(800, 600));
+        jPanel1.setMinimumSize(new java.awt.Dimension(800, 600));
+        jPanel1.setPreferredSize(new java.awt.Dimension(800, 600));
+        jPanel1.setLayout(null);
+
+        jLabel1.setFont(new java.awt.Font("Verdana", 1, 14)); // NOI18N
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("X");
+        jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel1MouseClicked(evt);
+            }
+        });
+        jPanel1.add(jLabel1);
+        jLabel1.setBounds(780, 0, 20, 20);
+
+        jButton1.setText("Send");
+        jPanel1.add(jButton1);
+        jButton1.setBounds(697, 560, 100, 40);
+
+        jVisor.setBackground(new java.awt.Color(66, 81, 93));
+        jVisor.setColumns(20);
+        jVisor.setRows(5);
+        jScrollPane2.setViewportView(jVisor);
+
+        jPanel1.add(jScrollPane2);
+        jScrollPane2.setBounds(180, 20, 620, 510);
+
+        jMSG.setColumns(20);
+        jMSG.setRows(5);
+        jMSG.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jMSGMouseClicked(evt);
+            }
+        });
+        jMSG.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jMSGKeyReleased(evt);
+            }
+        });
+        jScrollPane3.setViewportView(jMSG);
+
+        jPanel1.add(jScrollPane3);
+        jScrollPane3.setBounds(0, 530, 700, 70);
+
+        jUsuarios.setBackground(new java.awt.Color(28, 25, 25));
+        jUsuarios.setFont(new java.awt.Font("Verdana", 0, 14)); // NOI18N
+        jUsuarios.setForeground(new java.awt.Color(255, 255, 255));
+        jScrollPane4.setViewportView(jUsuarios);
+
+        jPanel1.add(jScrollPane4);
+        jScrollPane4.setBounds(0, 0, 180, 530);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void jLabel1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel1MouseClicked
+        this.dispose();
+    }//GEN-LAST:event_jLabel1MouseClicked
+
+    private void jMSGMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jMSGMouseClicked
+        jMSG.setText("");
+    }//GEN-LAST:event_jMSGMouseClicked
+
+    private void jMSGKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jMSGKeyReleased
+
+    }//GEN-LAST:event_jMSGKeyReleased
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(ChatViewer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(ChatViewer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(ChatViewer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(ChatViewer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new ChatViewer().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JTextArea jMSG;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JList jUsuarios;
+    private javax.swing.JTextArea jVisor;
+    // End of variables declaration//GEN-END:variables
+
+}
